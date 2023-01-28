@@ -1,6 +1,7 @@
-# PayerMAX Server sdk
+# JollyMax Distribute Server sdk
 
 ```xml
+
 <dependency>
     <groupId>com.jollymax</groupId>
     <artifactId>jollymax-server-sdk</artifactId>
@@ -24,7 +25,7 @@ JollyMaxClient client=DefaultJollyMaxClient.getInstance();
         String jollyMaxPublicKey="get jollymax public key from dashboard";
         String merchantNo="get merchantNo from dashboard";
         String appId="get appId from dashboard";
-        
+
         MerchantConfig merchantConfig=MerchantConfig.Builder.builder()
         .merchantPrivateKey(merchantPrivateKey)
         .jollyMaxPublicKey(jollyMaxPublicKey)
