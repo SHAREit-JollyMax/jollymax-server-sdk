@@ -6,11 +6,13 @@ import java.util.Map;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import com.alibaba.fastjson.JSON;
 import com.jollymax.sdk.api.Constants;
 import com.jollymax.sdk.client.DefaultJollyMaxClient;
 import com.jollymax.sdk.client.JollyMaxClient;
 import com.jollymax.sdk.config.GlobalMerchantConfig;
 import com.jollymax.sdk.config.MerchantConfig;
+import com.jollymax.sdk.distribute.req.OrderCreateRequest;
 import com.jollymax.sdk.distribute.req.OrderQueryRequest;
 import com.jollymax.sdk.distribute.resp.OrderQueryResponse;
 import com.jollymax.sdk.domain.GatewayResult;
@@ -39,9 +41,9 @@ public class SdkTest {
         // String merchantAppId = "get appId from dashboard";
 
         String jollymaxPublicKey =
-                "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6V6KhocSuxFbg7EUU3FE9EkB7Ir7p6z8eIKmK7EgORFvoGl6g2ZS2YZM/r5xvHQJVPF0I6XeCQGyVZa5nIJR/EVMP1xx6T06GLuz9tEoJDc9bKBr1xlgsasqmFRc1nuewTorj8j3kZ3uCgJqvIyeEi4ynhkJi1QNcQ/NmgFlasAYSzDAra4qSb7SuhF9BnhNRJeD9XBCv8391Fs3RVdb62iJLPwZgfvQRnGPDTpbCmH8mrOtBCDxQPgwaUiyyG1DZPuoVa7aUopknEV7UIIKlJaDr2gjuCT5YFjSHu+25vbYb/VLZdtsTiKgynq7OQb3YdTyate8RRLIazzjD3DzpQIDAQAB";
+            "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6V6KhocSuxFbg7EUU3FE9EkB7Ir7p6z8eIKmK7EgORFvoGl6g2ZS2YZM/r5xvHQJVPF0I6XeCQGyVZa5nIJR/EVMP1xx6T06GLuz9tEoJDc9bKBr1xlgsasqmFRc1nuewTorj8j3kZ3uCgJqvIyeEi4ynhkJi1QNcQ/NmgFlasAYSzDAra4qSb7SuhF9BnhNRJeD9XBCv8391Fs3RVdb62iJLPwZgfvQRnGPDTpbCmH8mrOtBCDxQPgwaUiyyG1DZPuoVa7aUopknEV7UIIKlJaDr2gjuCT5YFjSHu+25vbYb/VLZdtsTiKgynq7OQb3YdTyate8RRLIazzjD3DzpQIDAQAB";
         String merchantPrivateKey =
-                "MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDpXoqGhxK7EVuDsRRTcUT0SQHsivunrPx4gqYrsSA5EW+gaXqDZlLZhkz+vnG8dAlU8XQjpd4JAbJVlrmcglH8RUw/XHHpPToYu7P20SgkNz1soGvXGWCxqyqYVFzWe57BOiuPyPeRne4KAmq8jJ4SLjKeGQmLVA1xD82aAWVqwBhLMMCtripJvtK6EX0GeE1El4P1cEK/zf3UWzdFV1vraIks/BmB+9BGcY8NOlsKYfyas60EIPFA+DBpSLLIbUNk+6hVrtpSimScRXtQggqUloOvaCO4JPlgWNIe77bm9thv9Utl22xOIqDKers5Bvdh1PJq17xFEshrPOMPcPOlAgMBAAECggEAM6wCQh1AUXlbaQJZfMxUtz4/FdAEPrE3ybsr7fqvJtOsgrk4LkYGzDFHdRRX/KE4u70muQnt6tKcWQUhnfzhCFmTs2fVtQ4ggf91ro3LNJGioR24Iw10coJy0P3E/Jysnx4xLQoTfwOYBFFartr32RCvln/2tAntW/5iyNnMSeFIgQBsWAlQLC9tMxgs2eOpDYVjBqWNM5y4dNV4t+fOz3JP/v1rVHc4b3WqVcf6OaCwCXAdRGQJlfZElHJpTu0zC0qz+X2cHhYPxp6xlyhjM1U1imX0AtOoEppasKQMZPXWn4e7VJxUxtkuHkh7dn/THdzPvq1wChE5P+bRNTE9NQKBgQD2viOJNY2MO0fybGmJsoqDPgGac+9SWh3HttAij+z6a8TR9/caM4bNjbXB5F8FtGB6cbs8uhhebg2nGzdFP0jYP1aWb4qKFuyvqY00S+gpvs/KiknH5QIAn84ayGglC51E1JwIPt2RT21yEWXpKj5B971sLFu5f4KmjGZa2RcKLwKBgQDyH/TCUdVIhTNfNYz+q53/EkY7bwpIdk7qbB7/X4ImPD7nFOLxaCJBNufo1OlgR+TdNQRjJ6BqtNts6B3IDL21ZIZMRbJ10LQhyTNOuuTihBZp1Z2wnXVg1YcuwV9zouRfNEdyUgaiXJSZRW3GYRPwpLeBzq9oBtU/S3UTsCjuawKBgQCWXiuD27oGYr4m08DBZKga8TfC67JGSprpcdSHq5RszC5nEylos0wMirbgkY8DB/jfxd2oVXSyX3k8hE57ieSXvInFJfaUzwGwz7A41aWHgzxYn0v1YO+Gd9z/32/wW5KdNsBcGgunGXOGV2n23YKRayvp92Jyum1hmCBsbu4miwKBgQDW87PRh+D3vvk6f0orFaTwvAKJ5SyV5CJvT4m9YccjtryJXiuT8cTnbJ06QTrm9SyjjdvVQ2rRELr01qUJ4vXQwevQbtfebGhezka0kIt+5ZEYaELUdxWr4CVhRt88w9JHCxyay2OEZPivkcnBIpIXQ8R+g0WJ7vcGeDD6R5wu/QKBgQC0zOuD5k1ceK1A2rtxZTcVJg/mo5rVy4Uh4aTkzHleEtsURws9ynopsCalrlTA2/aL1nZaSrsAvDaYGur8/jH4aFJazjr7ahQLsw4XWmXfkCGhF5I5IqqT9+hc44vKq1YiQdDAB4ZP0JbZgEyf3MVRy94FNzRG/IRBubK5irEKCw==";
+            "MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDpXoqGhxK7EVuDsRRTcUT0SQHsivunrPx4gqYrsSA5EW+gaXqDZlLZhkz+vnG8dAlU8XQjpd4JAbJVlrmcglH8RUw/XHHpPToYu7P20SgkNz1soGvXGWCxqyqYVFzWe57BOiuPyPeRne4KAmq8jJ4SLjKeGQmLVA1xD82aAWVqwBhLMMCtripJvtK6EX0GeE1El4P1cEK/zf3UWzdFV1vraIks/BmB+9BGcY8NOlsKYfyas60EIPFA+DBpSLLIbUNk+6hVrtpSimScRXtQggqUloOvaCO4JPlgWNIe77bm9thv9Utl22xOIqDKers5Bvdh1PJq17xFEshrPOMPcPOlAgMBAAECggEAM6wCQh1AUXlbaQJZfMxUtz4/FdAEPrE3ybsr7fqvJtOsgrk4LkYGzDFHdRRX/KE4u70muQnt6tKcWQUhnfzhCFmTs2fVtQ4ggf91ro3LNJGioR24Iw10coJy0P3E/Jysnx4xLQoTfwOYBFFartr32RCvln/2tAntW/5iyNnMSeFIgQBsWAlQLC9tMxgs2eOpDYVjBqWNM5y4dNV4t+fOz3JP/v1rVHc4b3WqVcf6OaCwCXAdRGQJlfZElHJpTu0zC0qz+X2cHhYPxp6xlyhjM1U1imX0AtOoEppasKQMZPXWn4e7VJxUxtkuHkh7dn/THdzPvq1wChE5P+bRNTE9NQKBgQD2viOJNY2MO0fybGmJsoqDPgGac+9SWh3HttAij+z6a8TR9/caM4bNjbXB5F8FtGB6cbs8uhhebg2nGzdFP0jYP1aWb4qKFuyvqY00S+gpvs/KiknH5QIAn84ayGglC51E1JwIPt2RT21yEWXpKj5B971sLFu5f4KmjGZa2RcKLwKBgQDyH/TCUdVIhTNfNYz+q53/EkY7bwpIdk7qbB7/X4ImPD7nFOLxaCJBNufo1OlgR+TdNQRjJ6BqtNts6B3IDL21ZIZMRbJ10LQhyTNOuuTihBZp1Z2wnXVg1YcuwV9zouRfNEdyUgaiXJSZRW3GYRPwpLeBzq9oBtU/S3UTsCjuawKBgQCWXiuD27oGYr4m08DBZKga8TfC67JGSprpcdSHq5RszC5nEylos0wMirbgkY8DB/jfxd2oVXSyX3k8hE57ieSXvInFJfaUzwGwz7A41aWHgzxYn0v1YO+Gd9z/32/wW5KdNsBcGgunGXOGV2n23YKRayvp92Jyum1hmCBsbu4miwKBgQDW87PRh+D3vvk6f0orFaTwvAKJ5SyV5CJvT4m9YccjtryJXiuT8cTnbJ06QTrm9SyjjdvVQ2rRELr01qUJ4vXQwevQbtfebGhezka0kIt+5ZEYaELUdxWr4CVhRt88w9JHCxyay2OEZPivkcnBIpIXQ8R+g0WJ7vcGeDD6R5wu/QKBgQC0zOuD5k1ceK1A2rtxZTcVJg/mo5rVy4Uh4aTkzHleEtsURws9ynopsCalrlTA2/aL1nZaSrsAvDaYGur8/jH4aFJazjr7ahQLsw4XWmXfkCGhF5I5IqqT9+hc44vKq1YiQdDAB4ZP0JbZgEyf3MVRy94FNzRG/IRBubK5irEKCw==";
         String merchantNo = "010413833582715";
         String merchantAppId = "3a917b2faa5f4d8b91053435c668d857";
 
@@ -68,13 +70,19 @@ public class SdkTest {
     public void testUseDefaultMerchantConfig() throws Exception {
 
         // 1.通用api调用 不论服务端是何接口都可以进行调用
-        Map<String, Object> request = new HashMap<>();
+        OrderCreateRequest request = new OrderCreateRequest();
+        request.setOutOrderId("TEST_WH_20220728_004");
+        request.setMessageId(String.valueOf(System.nanoTime()));
+        request.setCode("your product code");
+        request.setQuantity("1");
 
-        request.put("outOrderId", "TEST_WH_20220728_004");
-        request.put("messageId", String.valueOf(System.nanoTime()));
+        Map<String, Object> tradeInfo = new HashMap<>();
+        tradeInfo.put("userId", "123456");
+        request.setTradeInfo(tradeInfo);
 
+        System.out.println(JSON.toJSONString(request));
         // client构造完成后，可以进行反复使用，不需要重复获取实例
-        String result = jollyMaxClient.send(Constants.DISTRIBUTE_ORDER_CREATE, request);
+        String result = jollyMaxClient.send(Constants.DISTRIBUTE_ORDER_QUERY, request);
         System.out.println(result);
     }
 
